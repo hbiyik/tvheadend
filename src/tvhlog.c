@@ -389,7 +389,7 @@ void tvhlogv ( const char *file, int line, int severity,
 {
   int ok, options, notify;
   size_t l;
-  char buf[1024];
+  char buf[2048];
 
   notify = (severity & LOG_TVH_NOTIFY) ? 1 : 0;
   severity &= ~LOG_TVH_NOTIFY;

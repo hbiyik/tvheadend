@@ -129,7 +129,7 @@ htsmsg_t *parse_m3u
   int delim;
   htsmsg_t *m = htsmsg_create_map();
   htsmsg_t *item = NULL, *l = NULL, *t, *key = NULL;
-  char buf[512];
+  char buf[2048];
 
   while (*data && *data <= ' ') data++;
   p = data;
