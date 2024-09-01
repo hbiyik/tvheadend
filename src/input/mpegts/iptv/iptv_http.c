@@ -355,7 +355,7 @@ iptv_http_complete
   const char *s;
   char *url;
   htsmsg_t *m, *m2;
-  int r;
+  int r, duration;
 
   if (hp == NULL || hp->shutdown || hp->im == NULL)
     return 0;
@@ -372,6 +372,7 @@ iptv_http_complete
     m = parse_m3u((char *)hp->m3u_sbuf.sb_data, NULL, hp->host_url);
     sbuf_free(&hp->m3u_sbuf);
 url:
+    duration = htsmsg_get_s64_or_default(m, "targetduration", 3);
     url = iptv_http_get_url(hp, m);
     if (hp->hls_m3u == m)
       m = NULL;
@@ -407,19 +408,21 @@ url:
         sbuf_reset(&hp->key_sbuf, 32);
       }
     }
-    tvhtrace(LS_IPTV, "m3u url: '%s'", url);
     if (url == NULL) {
-      tvherror(LS_IPTV, "m3u contents parsing failed");
-      goto fin;
+      htsmsg_destroy(m);
+      tvhtrace(LS_IPTV, "m3u does not have new segments, we are too fast, sleeping %d s", duration);
+      tvh_usleep(duration * 1000000);
+      goto nourl;
     }
+    tvhtrace(LS_IPTV, "m3u url: '%s'", url);
 new_m3u:
     iptv_http_reconnect(hc, url);
 end:
     free(url);
-fin:
     htsmsg_destroy(m);
   } else {
     if (hp->hls_url && hp->hls_m3u) {
+nourl:
       m = hp->hls_m3u;
       hp->hls_m3u = NULL;
       m2 = htsmsg_get_list(m, "items");
